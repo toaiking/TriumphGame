@@ -58,12 +58,19 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
     body {
       font-family: 'Be Vietnam Pro', sans-serif;
       background-color: #05070e;
       color: #e2e8f0;
       -webkit-tap-highlight-color: transparent;
-      overflow-x: hidden;
+      position: relative;
     }
     .font-display { font-family: 'Baloo 2', sans-serif; }
     .font-heading { font-family: 'Montserrat', sans-serif; }
@@ -109,7 +116,7 @@
   <!-- 1. TOP HEADER (EXACT UI DESKTOP & MOBILE)  -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 bg-dark-900/90 backdrop-blur-md border-b border-slate-800/80 shadow-cyber">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3">
+    <div class="max-w-7xl w-full mx-auto px-2.5 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-1.5 sm:gap-3 overflow-hidden">
       
       <!-- Brand & Logos -->
       <div class="flex items-center gap-2.5 sm:gap-3.5">
@@ -122,12 +129,12 @@
 
         <div>
           <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="font-heading font-black text-white text-base sm:text-xl tracking-wider">TRIUMPH</span>
+            <span class="font-heading font-black text-white text-sm sm:text-xl tracking-wide sm:tracking-wider">TRIUMPH</span>
             <span class="px-1.5 py-0.5 rounded bg-amber-400 text-dark-950 text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-sm">
               CĐCS
             </span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-400 font-medium truncate max-w-[200px] sm:max-w-xs">
+          <p class="text-[9px] sm:text-xs text-slate-400 font-medium truncate max-w-[140px] xs:max-w-[180px] sm:max-w-xs">
             CĐ Cty TNHH Triumph International VN
           </p>
         </div>
@@ -154,16 +161,16 @@
       </nav>
 
       <!-- Right Pill & Live Voting Status -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <!-- Live Voting Indicator -->
-        <div id="connBadge" class="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold bg-dark-850 border border-slate-700/80 shadow-inner shrink-0">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot shadow-[0_0_8px_#10b981] shrink-0"></span>
-          <span id="connText" class="text-emerald-300 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider whitespace-nowrap">LIVE</span>
+        <div id="connBadge" class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-dark-850 border border-slate-700/80 shadow-inner shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-dot shadow-[0_0_8px_#10b981] shrink-0"></span>
+          <span id="connText" class="text-emerald-300 font-mono text-[10px] uppercase tracking-wider whitespace-nowrap">LIVE</span>
         </div>
 
         <!-- Poster View Toggle Button -->
-        <button onclick="togglePosterModal()" title="Xem Poster Chính Thức" class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all">
-          <i data-lucide="image" class="w-4 h-4 text-neon-cyan"></i>
+        <button onclick="togglePosterModal()" title="Xem Poster Chính Thức" class="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1 border border-slate-700 shrink-0 transition-all">
+          <i data-lucide="image" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neon-cyan shrink-0"></i>
           <span class="hidden sm:inline">Poster</span>
         </button>
       </div>
@@ -171,7 +178,7 @@
     </div>
 
     <!-- Mobile Sub Navigation Bar -->
-    <div class="flex md:hidden items-center justify-around bg-dark-950/95 border-t border-slate-800/90 py-2 px-2">
+    <div class="flex md:hidden items-center justify-around bg-dark-950/95 border-t border-slate-800/90 py-2 px-1 w-full overflow-hidden">
       <button id="mobNavVote" onclick="switchMainTab('vote')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-500/20 text-neon-cyan border border-cyan-500/40">
         <i data-lucide="vote" class="w-3.5 h-3.5"></i>
         <span>Bình Chọn</span>
@@ -194,7 +201,7 @@
   <!-- ========================================== -->
   <!-- 2. MAIN CONTENT AREA                       -->
   <!-- ========================================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-2.5 py-4 sm:p-6 space-y-5 sm:space-y-6 overflow-hidden">
 
     <!-- ========================================== -->
     <!-- TAB 1: VOTING & ARENA MATCHES (VIEW_VOTE)  -->
@@ -202,7 +209,7 @@
     <div id="viewVote" class="space-y-6">
 
       <!-- TOP HERO BANNER & STATS (MATCHING UI DESIGN) -->
-      <section id="heroBannerSection" class="relative rounded-3xl border-2 border-slate-700/80 p-5 sm:p-8 overflow-hidden shadow-2xl bg-dark-900 group">
+      <section id="heroBannerSection" class="relative rounded-2xl sm:rounded-3xl border-2 border-slate-700/80 p-4 sm:p-8 overflow-hidden shadow-2xl bg-dark-900 group w-full">
         <!-- New Tailored Header Background with Dual-layer overlay -->
         <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <!-- Desktop Background (Landscape) -->
@@ -264,7 +271,7 @@
           </div>
 
           <!-- Right: Countdown Digital Box -->
-          <div class="bg-dark-900/90 border-2 border-slate-700/80 rounded-2xl p-4 sm:p-5 text-center min-w-[280px] sm:min-w-[320px] shadow-2xl relative">
+          <div class="bg-dark-900/90 border-2 border-slate-700/80 rounded-2xl p-3.5 sm:p-5 text-center w-full lg:w-auto lg:min-w-[320px] shadow-2xl relative">
             <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
               <span class="flex items-center gap-1.5 text-rose-400">
                 <i data-lucide="hourglass" class="w-4 h-4 animate-spin" style="animation-duration: 6s;"></i>
