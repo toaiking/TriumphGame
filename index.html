@@ -209,7 +209,7 @@
     <div id="viewVote" class="space-y-6">
 
       <!-- TOP HERO BANNER & STATS (MATCHING UI DESIGN) -->
-      <section id="heroBannerSection" class="relative rounded-2xl sm:rounded-3xl border-2 border-slate-700/80 p-4 sm:p-8 overflow-hidden shadow-2xl bg-dark-900 group w-full">
+      <section id="heroBannerSection" class="hidden relative rounded-2xl sm:rounded-3xl border-2 border-slate-700/80 p-4 sm:p-8 overflow-hidden shadow-2xl bg-dark-900 group w-full">
         <!-- New Tailored Header Background with Dual-layer overlay -->
         <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <!-- Desktop Background (Landscape) -->
@@ -310,7 +310,7 @@
       </section>
 
       <!-- SYSTEM 404 / MAINTENANCE LOCKDOWN SCREEN OVERLAY -->
-      <div id="systemLockdownScreen" class="hidden py-8 sm:py-16">
+      <div id="systemLockdownScreen" class="py-8 sm:py-16">
         <div class="max-w-md mx-auto bg-dark-900/95 border border-rose-500/40 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl backdrop-blur-xl relative overflow-hidden">
           <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-rose-500/20 via-dark-950 to-amber-500/20 border border-rose-500/50 flex items-center justify-center shadow-lg relative">
             <i data-lucide="shield-alert" class="w-10 h-10 text-rose-500 animate-pulse"></i>
@@ -416,7 +416,7 @@
       </div>
 
       <!-- TWO-COLUMN RESPONSIVE LAYOUT (PC: 65% MATCHES / 35% FORM - MOBILE: STACKED) -->
-      <div id="activeVotingLayout" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div id="activeVotingLayout" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- LEFT COLUMN: STEP 1 - MATCHES & TEAM SELECTION (8 COLS ON DESKTOP) -->
         <div class="lg:col-span-7 xl:col-span-8 space-y-4">
@@ -1356,6 +1356,7 @@
       matchFilter: "ALL",
       // Admin
       isAdminLoggedIn: sessionStorage.getItem("keoco_admin_logged") === "true",
+      isSystemLocked: true, // Mặc định hiển thị 404 ngay
       adminViewingCampaignId: DEFAULT_CAMPAIGN_ID,
       adminVotesMap: {}
     };
@@ -1404,7 +1405,8 @@
 
       // Subscribe system/lockdown
       state.adapter.subscribe("system/lockdown", (isLocked) => {
-        state.isSystemLocked = !!isLocked;
+        // Mặc định là true nếu chưa có cấu hình (ưu tiên hiện 404 ngay)
+        state.isSystemLocked = isLocked === undefined ? true : !!isLocked;
         applySystemLockdownUI(state.isSystemLocked);
       });
 
