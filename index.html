@@ -561,17 +561,8 @@
             </div>
             
             <div id="recentVotesList" class="space-y-1.5 text-xs text-slate-400">
-              <div class="flex items-center justify-between p-2 rounded-lg bg-dark-950 border border-slate-800/80">
-                <span><strong class="text-neon-cyan font-mono">TIV****91</strong> bầu cho <span class="text-white font-semibold">PD - Đội số 01</span></span>
-                <span class="text-[10px] text-slate-500">10s trước</span>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded-lg bg-dark-950 border border-slate-800/80">
-                <span><strong class="text-neon-cyan font-mono">TIV****28</strong> bầu cho <span class="text-white font-semibold">CUTTING - Đội 02</span></span>
-                <span class="text-[10px] text-slate-500">42s trước</span>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded-lg bg-dark-950 border border-slate-800/80">
-                <span><strong class="text-neon-cyan font-mono">TIV****04</strong> bầu cho <span class="text-white font-semibold">BD A - Line 11A</span></span>
-                <span class="text-[10px] text-slate-500">1m trước</span>
+              <div class="p-3 text-center text-slate-500 text-[11px] italic bg-dark-950 rounded-lg border border-slate-800/60">
+                Chưa có lượt bình chọn nào được ghi nhận. Hãy là người đầu tiên bình chọn!
               </div>
             </div>
           </div>
@@ -1157,16 +1148,7 @@
       winnerOption: "",
       createdAt: Date.now(),
       options: MASTER_TEAMS,
-      counts: {
-        opt_01: 320, opt_02: 680,
-        opt_03: 450, opt_04: 550,
-        opt_05: 610, opt_06: 390,
-        opt_07: 420, opt_08: 580,
-        opt_09: 490, opt_10: 510,
-        opt_11: 530, opt_12: 470,
-        opt_13: 500, opt_14: 500,
-        opt_15: 480, opt_16: 520
-      }
+      counts: {} // Khởi tạo 0 phiếu thật từ đầu
     };
 
     // STATE STORE WITH INSTANT PRELOADED MATCHES
@@ -1211,8 +1193,17 @@
       // Seed if empty
       await seedDefaultDataIfEmpty();
 
+      // Subscribe live votes feed for recent votes ticker
+      function subscribeVotesFeed(cid) {
+        if (!cid) return;
+        state.adapter.subscribe("votes/" + cid, (votesObj) => {
+          renderRecentVotesTicker(votesObj);
+        });
+      }
+
       // Subscribe system/activeCampaignId
       state.adapter.subscribe("system/activeCampaignId", (cid) => {
+        subscribeVotesFeed(cid);
         if (cid && cid !== state.activeCampaignId) {
           state.activeCampaignId = cid;
           handleActiveCampaignChanged(cid);
@@ -1250,16 +1241,7 @@
             winnerOption: "",
             createdAt: state.adapter.serverNow(),
             options: MASTER_TEAMS,
-            counts: {
-              opt_01: 320, opt_02: 680,
-              opt_03: 450, opt_04: 550,
-              opt_05: 610, opt_06: 390,
-              opt_07: 420, opt_08: 580,
-              opt_09: 490, opt_10: 510,
-              opt_11: 530, opt_12: 470,
-              opt_13: 500, opt_14: 500,
-              opt_15: 480, opt_16: 520
-            }
+            counts: {} // 0 phiếu thật từ người chơi thực tế
           };
           const updates = {
             [`campaigns/${DEFAULT_CAMPAIGN_ID}`]: seedCamp,
@@ -1307,6 +1289,33 @@
     // ==========================================
     // RENDER: MATCHES & VOTING INTERFACE
     // ==========================================
+    
+    function renderRecentVotesTicker(votesObj) {
+      const container = document.getElementById("recentVotesList");
+      if (!container) return;
+      if (!votesObj || Object.keys(votesObj).length === 0) {
+        container.innerHTML = `
+          <div class="p-3 text-center text-slate-500 text-[11px] italic bg-dark-950 rounded-lg border border-slate-800/60">
+            Chưa có lượt bình chọn nào được ghi nhận. Hãy là người đầu tiên bình chọn!
+          </div>
+        `;
+        return;
+      }
+      const arr = Object.values(votesObj).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 5);
+      container.innerHTML = arr.map(v => {
+        const maskedEmp = v.empId.length > 4 ? v.empId.substring(0, 3) + '****' + v.empId.slice(-2) : v.empId;
+        const now = state.adapter ? state.adapter.serverNow() : Date.now();
+        const diffSec = Math.max(1, Math.floor((now - (v.timestamp || now)) / 1000));
+        const timeAgo = diffSec < 60 ? diffSec + 's trước' : Math.floor(diffSec / 60) + 'm trước';
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-dark-950 border border-slate-800/80">
+            <span><strong class="text-neon-cyan font-mono">${maskedEmp}</strong> bầu cho <span class="text-white font-semibold">${v.optionName}</span></span>
+            <span class="text-[10px] text-slate-500 font-mono">${timeAgo}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
     function renderVoteView() {
       const camp = state.activeCampaign;
       if (!camp) return;
@@ -1389,11 +1398,12 @@
         const t2 = p.team2;
         if (!t1) return "";
 
-        const c1 = countsMap[t1.id] || 0;
-        const c2 = t2 ? (countsMap[t2.id] || 0) : 0;
+        const c1 = Number(countsMap[t1.id] || 0);
+        const c2 = t2 ? Number(countsMap[t2.id] || 0) : 0;
         const matchTotal = c1 + c2;
-        const pct1 = matchTotal > 0 ? Math.round((c1 / matchTotal) * 100) : 50;
-        const pct2 = 100 - pct1;
+        const pct1 = matchTotal > 0 ? Math.round((c1 / matchTotal) * 100) : 0;
+        const pct2 = matchTotal > 0 ? (100 - pct1) : 0;
+        const hasVotes = matchTotal > 0;
 
         const isSel1 = state.selectedOptionId === t1.id;
         const isSel2 = t2 && state.selectedOptionId === t2.id;
@@ -1493,12 +1503,16 @@
             <!-- Tug of War Momentum Bar -->
             <div class="mt-3 pt-2.5">
               <div class="w-full bg-dark-950 h-2 rounded-full overflow-hidden flex p-[1px] border border-slate-800">
-                <div class="momentum-bar bg-gradient-to-r from-neon-blue to-neon-cyan h-full rounded-l-full" style="width: ${pct1}%"></div>
-                <div class="momentum-bar bg-gradient-to-r from-rose-500 to-neon-pink h-full rounded-r-full" style="width: ${pct2}%"></div>
+                ${hasVotes ? `
+                  <div class="momentum-bar bg-gradient-to-r from-neon-blue to-neon-cyan h-full rounded-l-full" style="width: ${pct1}%"></div>
+                  <div class="momentum-bar bg-gradient-to-r from-rose-500 to-neon-pink h-full rounded-r-full" style="width: ${pct2}%"></div>
+                ` : `
+                  <div class="w-full h-full bg-slate-800/50 rounded-full"></div>
+                `}
               </div>
               <div class="flex justify-between items-center text-[10px] font-mono font-bold text-slate-500 mt-1">
-                <span class="text-neon-cyan">← Momentum (${pct1}%)</span>
-                <span class="text-neon-pink">${pct2 > pct1 ? 'Áp đảo ('+pct2+'%) →' : 'Bám đuổi ('+pct2+'%) →'}</span>
+                <span class="text-neon-cyan">${hasVotes ? '← Tỉ lệ ' + pct1 + '%' : 'Chưa có phiếu'}</span>
+                <span class="text-neon-pink">${hasVotes ? (pct2 > pct1 ? 'Áp đảo ('+pct2+'%) →' : 'Bám đuổi ('+pct2+'%) →') : '0%'}</span>
               </div>
             </div>
 
