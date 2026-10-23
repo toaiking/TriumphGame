@@ -309,6 +309,48 @@
         </div>
       </section>
 
+      <!-- SYSTEM 404 / MAINTENANCE LOCKDOWN SCREEN OVERLAY -->
+      <div id="systemLockdownScreen" class="hidden py-8 sm:py-16">
+        <div class="max-w-md mx-auto bg-dark-900/95 border border-rose-500/40 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+          <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-rose-500/20 via-dark-950 to-amber-500/20 border border-rose-500/50 flex items-center justify-center shadow-lg relative">
+            <i data-lucide="shield-alert" class="w-10 h-10 text-rose-500 animate-pulse"></i>
+            <div class="absolute -top-1 -right-1 px-2 py-0.5 rounded-full bg-rose-600 text-[10px] font-black text-white font-mono shadow">
+              404
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h2 class="font-heading font-black text-5xl sm:text-6xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-400 to-amber-400 font-mono">
+              404
+            </h2>
+            <h3 class="font-display font-black text-lg sm:text-xl text-white uppercase tracking-wide">
+              HỆ THỐNG ĐANG TẠM KHÓA
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Cổng bình chọn và máy chủ hiện đang được Ban tổ chức tạm khóa để bảo trì hoặc chuẩn bị cho đợt thi đấu tiếp theo. Vui lòng quay lại sau!
+            </p>
+          </div>
+
+          <div class="bg-dark-950 p-3.5 rounded-2xl border border-slate-800 text-left space-y-2 text-xs">
+            <div class="flex items-center justify-between text-slate-400">
+              <span>Trạng thái:</span>
+              <span class="font-bold text-amber-400 flex items-center gap-1">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i> Tạm ngưng tiếp nhận
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-slate-400">
+              <span>Đơn vị tổ chức:</span>
+              <span class="font-semibold text-slate-300">Công Đoàn Cơ Sở Triumph</span>
+            </div>
+          </div>
+
+          <button onclick="window.location.reload()" class="w-full py-3 px-4 rounded-xl font-heading font-bold text-xs uppercase tracking-wider text-dark-950 bg-gradient-to-r from-neon-cyan to-blue-500 hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>Tải Lại Trang</span>
+          </button>
+        </div>
+      </div>
+
       <!-- ACTIVE CAMPAIGN NOTIFICATION IF CLOSED -->
       <div id="campClosedBanner" class="hidden p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-200 text-xs sm:text-sm flex items-center gap-3">
         <i data-lucide="lock" class="w-6 h-6 text-amber-400 shrink-0"></i>
@@ -621,6 +663,12 @@
           </div>
 
           <div class="flex items-center gap-2">
+            <!-- Chế độ tạm khóa 404 Toggle -->
+            <button id="btnToggleLockdown" onclick="adminToggleSystemLockdown()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+              <span id="txtToggleLockdown">Tạm Khóa 404</span>
+            </button>
+
             <button onclick="openCreateModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-neon-pink to-rose-600 text-white shadow-lg shadow-rose-600/20 hover:opacity-90 transition-all">
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               <span>Tạo Đợt Mới</span>
@@ -1354,6 +1402,12 @@
         }
       });
 
+      // Subscribe system/lockdown
+      state.adapter.subscribe("system/lockdown", (isLocked) => {
+        state.isSystemLocked = !!isLocked;
+        applySystemLockdownUI(state.isSystemLocked);
+      });
+
       // Subscribe campaigns
       state.adapter.subscribe("campaigns", (camps) => {
         state.campaigns = camps || {};
@@ -1438,6 +1492,51 @@
     // RENDER: MATCHES & VOTING INTERFACE
     // ==========================================
     
+    function applySystemLockdownUI(isLocked) {
+      const lockScreen = document.getElementById("systemLockdownScreen");
+      const activeLayout = document.getElementById("activeVotingLayout");
+      const heroSection = document.querySelector("#viewVote section");
+      const btnToggle = document.getElementById("btnToggleLockdown");
+      const txtToggle = document.getElementById("txtToggleLockdown");
+
+      if (isLocked) {
+        if (lockScreen) lockScreen.classList.remove("hidden");
+        if (activeLayout) activeLayout.classList.add("hidden");
+        if (heroSection) heroSection.classList.add("hidden");
+        if (btnToggle) {
+          btnToggle.className = "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 border border-rose-400";
+        }
+        if (txtToggle) txtToggle.textContent = "Đang Khóa 404 (Mở Lại)";
+      } else {
+        if (lockScreen) lockScreen.classList.add("hidden");
+        if (activeLayout) activeLayout.classList.remove("hidden");
+        if (heroSection) heroSection.classList.remove("hidden");
+        if (btnToggle) {
+          btnToggle.className = "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700";
+        }
+        if (txtToggle) txtToggle.textContent = "Tạm Khóa 404";
+      }
+      lucide.createIcons();
+    }
+
+    window.adminToggleSystemLockdown = async function() {
+      const nextState = !state.isSystemLocked;
+      const confirmMsg = nextState 
+        ? "BẠN CÓ CHẮC CHẮN MUỐN TẠM KHÓA TOÀN BỘ ỨNG DỤNG (HIỆN MÃ 404 BẢO TRÌ)?\n\nNgười dùng truy cập sẽ thấy màn hình thông báo hệ thống tạm ngưng để Ban tổ chức chuẩn bị."
+        : "BẠN CÓ CHẮC CHẮN MUỐN MỞ KHÓA LẠI HỆ THỐNG ĐỂ NGƯỜI CHƠI BÌNH CHỌN?";
+      
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        await state.adapter.set("system/lockdown", nextState);
+        state.isSystemLocked = nextState;
+        applySystemLockdownUI(nextState);
+        showToast(nextState ? "Đã bật chế độ Tạm Khóa 404 trên toàn hệ thống!" : "Đã mở khóa hệ thống thành công!", "info");
+      } catch (err) {
+        showToast("Lỗi cập nhật: " + err.message, "error");
+      }
+    };
+
     function renderRecentVotesTicker(votesObj) {
       const container = document.getElementById("recentVotesList");
       if (!container) return;
