@@ -700,11 +700,11 @@
                 🏆 Đội Chiến Thắng Thực Tế
               </label>
               <div class="flex gap-2">
-                <select id="selWinnerOption" class="flex-1 py-2 px-3 bg-dark-900 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-neon-cyan">
+                <select id="selWinnerOption" onchange="handleSaveWinner(this.value)" class="flex-1 py-2 px-3 bg-dark-900 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-neon-cyan">
                   <option value="">-- Chưa chọn đội chiến thắng --</option>
                 </select>
                 <button onclick="handleSaveWinner()" class="px-5 py-2 bg-gradient-to-r from-neon-cyan to-blue-600 hover:opacity-90 text-dark-950 font-bold rounded-xl text-xs transition-all shadow-md">
-                  Lưu & Lọc
+                  Lọc Kết Quả
                 </button>
               </div>
             </div>
@@ -1965,6 +1965,11 @@
                 ${isViewing ? 'Đang Xem' : 'Xem & Lọc'}
               </button>
 
+              <button onclick="adminResetCampaign('${c.id}', '${(c.title || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-400 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all flex items-center gap-1" title="Đặt lại: Xóa toàn bộ phiếu và mở lại đợt này">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Reset</span>
+              </button>
+
               <button onclick="adminDeleteCampaign('${c.id}', '${(c.title || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-all flex items-center gap-1" title="Xóa đợt bình chọn này">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">Xóa</span>
@@ -1994,6 +1999,58 @@
     window.adminSetViewingCampaign = function(cid) {
       state.adminViewingCampaignId = cid;
       renderAdminPanel();
+    };
+
+    window.adminResetCampaign = async function(cid, title) {
+      const confirmed = confirm(`BẠN CÓ CHẮC CHẮN MUỐN RESET (ĐẶT LẠI) ĐỢT:\n"${title || cid}"?\n\nThao tác này sẽ:\n1. Xóa toàn bộ phiếu bình chọn của đợt này về 0\n2. Mở khóa cho tất cả nhân viên / thiết bị được bình chọn lại\n3. Làm mới kết quả các trận đấu & kết quả giải thưởng\n4. Mở lại cổng bình chọn (status: OPEN)`);
+      if (!confirmed) return;
+
+      try {
+        const resetCounts = {};
+        if (state.campaigns[cid] && state.campaigns[cid].options) {
+          state.campaigns[cid].options.forEach(opt => {
+            resetCounts[opt.id] = 0;
+          });
+        }
+
+        const updates = {
+          [`votes/${cid}`]: null,
+          [`usedDevices/${cid}`]: null,
+          [`campaigns/${cid}/counts`]: resetCounts,
+          [`campaigns/${cid}/matchResults`]: null,
+          [`campaigns/${cid}/winnerOption`]: "",
+          [`campaigns/${cid}/status`]: "OPEN"
+        };
+
+        await state.adapter.update(updates);
+
+        if (state.campaigns[cid]) {
+          state.campaigns[cid].counts = resetCounts;
+          state.campaigns[cid].matchResults = {};
+          state.campaigns[cid].winnerOption = "";
+          state.campaigns[cid].status = "OPEN";
+        }
+        delete state.adminVotesMap[cid];
+
+        // Xóa receipt local nếu người dùng hiện tại đã từng vote đợt này
+        localStorage.removeItem(`vote_${cid}`);
+        if (state.activeCampaignId === cid) {
+          state.userReceipt = null;
+          state.selectedOptionId = null;
+        }
+
+        showToast("Đã reset đợt bình chọn về trạng thái ban đầu thành công!", "success");
+        renderAdminPanel();
+        if (state.activeCampaignId === cid) {
+          renderHeader();
+          renderCampaignHero();
+          renderTeams();
+          renderVoteView();
+        }
+      } catch (err) {
+        console.error("Reset campaign error:", err);
+        showToast("Lỗi khi reset đợt bình chọn: " + err.message, "error");
+      }
     };
 
     window.adminDeleteCampaign = async function(cid, title) {
@@ -2159,9 +2216,35 @@
           } else {
             delete state.campaigns[cid].matchResults[matchKey];
           }
+
+          // TỰ ĐỘNG TỔNG HỢP VÀ ĐỀ XUẤT / CẬP NHẬT ĐỘI CHIẾN THẮNG ĐỢT BÌNH CHỌN
+          // Nếu đợt chỉ có 1 trận (Chung kết) hoặc toàn bộ trận đã có người thắng
+          const allOptions = state.campaigns[cid].options || [];
+          const totalMatches = Math.ceil(allOptions.length / 2);
+          const currentWinners = Object.values(state.campaigns[cid].matchResults || {}).filter(Boolean);
+
+          let autoWinnerName = "";
+          if (totalMatches === 1 && currentWinners.length === 1) {
+            // Trường hợp 1 trận (như Trận Chung Kết): Đội thắng trận này chính là Đội Vô Địch giải!
+            const opt = allOptions.find(o => o.id === currentWinners[0]);
+            if (opt) autoWinnerName = opt.name;
+          } else if (winnerOptId) {
+            // Nếu có nhiều trận, lấy đội vừa được chọn thắng làm lựa chọn chiến thắng ưu tiên
+            const opt = allOptions.find(o => o.id === winnerOptId);
+            if (opt && (!state.campaigns[cid].winnerOption || state.campaigns[cid].winnerOption === "")) {
+              autoWinnerName = opt.name;
+            }
+          }
+
+          if (autoWinnerName) {
+            await state.adapter.set(`campaigns/${cid}/winnerOption`, autoWinnerName);
+            state.campaigns[cid].winnerOption = autoWinnerName;
+          }
         }
 
         renderAdminMatchResultsBlock();
+        await renderAdminResultsBlock();
+
         if (state.activeCampaignId === cid) {
           renderVoteView();
           const modalBracket = document.getElementById("modalBracket");
@@ -2169,7 +2252,7 @@
             renderDynamicBracket();
           }
         }
-        showToast("Đã cập nhật kết quả trận đấu!", "success");
+        showToast("Đã cập nhật kết quả và tự động đồng bộ bảng xếp hạng!", "success");
       } catch (err) {
         console.error("Match winner set error:", err);
         showToast("Lỗi khi lưu kết quả: " + err.message, "error");
@@ -2316,12 +2399,15 @@
       showToast(`Đã ${checked ? 'bật' : 'tắt'} hiển thị số phiếu trên màn hình người chơi`, "info");
     };
 
-    window.handleSaveWinner = async function() {
+    window.handleSaveWinner = async function(manualWinner) {
       const cid = state.adminViewingCampaignId;
       if (!cid) return;
-      const winner = document.getElementById("selWinnerOption").value;
+      const winner = manualWinner !== undefined ? manualWinner : document.getElementById("selWinnerOption").value;
       await state.adapter.set(`campaigns/${cid}/winnerOption`, winner);
-      showToast("Đã cập nhật đội chiến thắng thực tế và lọc giải!", "success");
+      if (state.campaigns[cid]) {
+        state.campaigns[cid].winnerOption = winner;
+      }
+      showToast(winner ? `Đã chọn đội chiến thắng: ${winner} và tự động lọc giải!` : "Đã hủy chọn đội chiến thắng!", "success");
       renderAdminPanel();
     };
 
