@@ -156,9 +156,9 @@
       <!-- Right Pill & Live Voting Status -->
       <div class="flex items-center gap-2">
         <!-- Live Voting Indicator -->
-        <div id="connBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-dark-850 border border-slate-700/80 shadow-inner">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot shadow-[0_0_8px_#10b981]"></span>
-          <span id="connText" class="text-emerald-300 font-mono text-[11px] uppercase tracking-wider">LIVE VOTING</span>
+        <div id="connBadge" class="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold bg-dark-850 border border-slate-700/80 shadow-inner shrink-0">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-dot shadow-[0_0_8px_#10b981] shrink-0"></span>
+          <span id="connText" class="text-emerald-300 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider whitespace-nowrap">LIVE</span>
         </div>
 
         <!-- Poster View Toggle Button -->
@@ -589,13 +589,13 @@
         </div>
         
         <form onsubmit="handleAdminLogin(event)" class="space-y-3">
-          <input type="password" id="inpAdminPin" maxlength="8" placeholder="Nhập PIN (VD: 2010)" autofocus
+          <input type="password" id="inpAdminPin" maxlength="8" placeholder="Nhập mã PIN Ban Tổ Chức" autofocus
             class="w-full text-center text-2xl tracking-[0.3em] font-mono py-2.5 px-4 bg-dark-950 border-2 border-slate-700 rounded-xl text-white focus:border-neon-cyan focus:outline-none" />
           <button type="submit" class="w-full py-3 px-4 rounded-xl bg-neon-cyan hover:bg-cyan-400 text-dark-950 font-heading font-black text-xs uppercase tracking-wider transition-all shadow-md">
             MỞ KHÓA BẢNG ĐIỀU KHIỂN
           </button>
         </form>
-        <p class="text-[11px] text-slate-500">Mã PIN mặc định của sự kiện: <strong class="text-amber-400">2010</strong></p>
+        <p class="text-[11px] text-slate-500">Chỉ dành cho Cán bộ thuộc Ban Tổ Chức Hội Thi.</p>
       </div>
 
       <!-- Admin Panel Container -->
@@ -1180,7 +1180,7 @@
         const res = await state.adapter.init();
         state.deviceUid = res.uid;
         state.mode = "firebase";
-        updateConnBadge("firebase", "● LIVE VOTING 2026");
+        updateConnBadge("firebase", "● LIVE VOTING");
       } catch (err) {
         console.warn("Không thể kết nối Firebase RTDB, kích hoạt LocalAdapter:", err);
         state.adapter = new LocalAdapter();
