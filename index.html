@@ -1405,8 +1405,7 @@
 
       // Subscribe system/lockdown
       state.adapter.subscribe("system/lockdown", (isLocked) => {
-        // Mặc định là true nếu chưa có cấu hình (ưu tiên hiện 404 ngay)
-        state.isSystemLocked = isLocked === undefined ? true : !!isLocked;
+        state.isSystemLocked = isLocked === null || isLocked === undefined ? true : !!isLocked;
         applySystemLockdownUI(state.isSystemLocked);
       });
 
@@ -1504,19 +1503,19 @@
       const txtToggle = document.getElementById("txtToggleLockdown");
 
       if (isLocked) {
-        if (lockScreen) lockScreen.classList.remove("hidden");
-        if (activeLayout) activeLayout.classList.add("hidden");
-        if (heroSection) heroSection.classList.add("hidden");
-        if (rcpCard) rcpCard.classList.add("hidden");
-        if (closedBanner) closedBanner.classList.add("hidden");
+        if (lockScreen) lockScreen.style.setProperty("display", "block", "important");
+        if (activeLayout) activeLayout.style.setProperty("display", "none", "important");
+        if (heroSection) heroSection.style.setProperty("display", "none", "important");
+        if (rcpCard) rcpCard.style.setProperty("display", "none", "important");
+        if (closedBanner) closedBanner.style.setProperty("display", "none", "important");
         if (btnToggle) {
           btnToggle.className = "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 border border-rose-400";
         }
         if (txtToggle) txtToggle.textContent = "Đang Khóa 404 (Mở Lại)";
       } else {
-        if (lockScreen) lockScreen.classList.add("hidden");
-        if (activeLayout) activeLayout.classList.remove("hidden");
-        if (heroSection) heroSection.classList.remove("hidden");
+        if (lockScreen) lockScreen.style.setProperty("display", "none", "important");
+        if (activeLayout) activeLayout.style.removeProperty("display");
+        if (heroSection) heroSection.style.removeProperty("display");
         if (btnToggle) {
           btnToggle.className = "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700";
         }
