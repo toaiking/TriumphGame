@@ -703,14 +703,14 @@
               <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
               <span>Bảng Xếp Hạng TOP 10 Người Trúng Thưởng</span>
             </h4>
-            <div class="flex items-center gap-2">
-              <button onclick="exportWinnersCsv()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                <span>Xuất CSV Top Giải</span>
-              </button>
-              <button onclick="exportAllVotesCsv()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="exportWinnersCsv()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-dark-950 transition-all shadow-md active:scale-95">
                 <i data-lucide="download" class="w-4 h-4"></i>
-                <span>Xuất Toàn Bộ Phiếu</span>
+                <span>Tải Bảng TOP 10 (Excel/CSV)</span>
+              </button>
+              <button onclick="exportAllVotesCsv()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span>Xuất Tất Cả Phiếu</span>
               </button>
             </div>
           </div>
@@ -1860,6 +1860,11 @@
               }">
                 ${isViewing ? 'Đang Xem' : 'Xem & Lọc'}
               </button>
+
+              <button onclick="adminDeleteCampaign('${c.id}', '${(c.title || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-all flex items-center gap-1" title="Xóa đợt bình chọn này">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Xóa</span>
+              </button>
             </div>
           </div>
         `;
@@ -1885,6 +1890,51 @@
     window.adminSetViewingCampaign = function(cid) {
       state.adminViewingCampaignId = cid;
       renderAdminPanel();
+    };
+
+    window.adminDeleteCampaign = async function(cid, title) {
+      const campCount = Object.keys(state.campaigns || {}).length;
+      if (campCount <= 1) {
+        showToast("Không thể xóa đợt bình chọn duy nhất còn lại!", "warning");
+        return;
+      }
+
+      const confirmed = confirm(`BẠN CÓ CHẮC CHẮN MUỐN XÓA ĐỢT BÌNH CHỌN:\n"${title || cid}"?\n\nLưu ý: Toàn bộ phiếu bình chọn của đợt này sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu!`);
+      if (!confirmed) return;
+
+      try {
+        const updates = {
+          [`campaigns/${cid}`]: null,
+          [`votes/${cid}`]: null,
+          [`usedDevices/${cid}`]: null
+        };
+
+        // Nếu đang kích hoạt hiển thị trực tiếp đợt này, chuyển sang đợt khác
+        if (state.activeCampaignId === cid) {
+          const remainingIds = Object.keys(state.campaigns).filter(id => id !== cid);
+          const newActiveId = remainingIds[0];
+          updates["system/activeCampaignId"] = newActiveId;
+          state.activeCampaignId = newActiveId;
+        }
+
+        await state.adapter.update(updates);
+        delete state.campaigns[cid];
+        delete state.adminVotesMap[cid];
+
+        if (state.adminViewingCampaignId === cid) {
+          const remainingIds = Object.keys(state.campaigns);
+          state.adminViewingCampaignId = remainingIds[0] || null;
+        }
+
+        showToast("Đã xóa đợt bình chọn thành công!", "success");
+        renderAdminPanel();
+        renderHeader();
+        renderCampaignHero();
+        renderTeams();
+      } catch (err) {
+        console.error("Delete campaign error:", err);
+        showToast("Lỗi khi xóa đợt bình chọn: " + err.message, "error");
+      }
     };
 
     async function renderAdminResultsBlock() {
