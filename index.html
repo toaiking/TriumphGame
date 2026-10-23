@@ -1497,7 +1497,9 @@
     function applySystemLockdownUI(isLocked) {
       const lockScreen = document.getElementById("systemLockdownScreen");
       const activeLayout = document.getElementById("activeVotingLayout");
-      const heroSection = document.querySelector("#viewVote section");
+      const heroSection = document.getElementById("heroBannerSection");
+      const rcpCard = document.getElementById("receiptCard");
+      const closedBanner = document.getElementById("campClosedBanner");
       const btnToggle = document.getElementById("btnToggleLockdown");
       const txtToggle = document.getElementById("txtToggleLockdown");
 
@@ -1505,6 +1507,8 @@
         if (lockScreen) lockScreen.classList.remove("hidden");
         if (activeLayout) activeLayout.classList.add("hidden");
         if (heroSection) heroSection.classList.add("hidden");
+        if (rcpCard) rcpCard.classList.add("hidden");
+        if (closedBanner) closedBanner.classList.add("hidden");
         if (btnToggle) {
           btnToggle.className = "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 border border-rose-400";
         }
@@ -1568,6 +1572,12 @@
     function renderVoteView() {
       const camp = state.activeCampaign;
       if (!camp) return;
+
+      // NẾU HỆ THỐNG ĐANG TẠM KHÓA (404), GIỮ NGUYÊN MÀN HÌNH KHÓA VÀ KHÔNG HIỂN THỊ LẠI
+      if (state.isSystemLocked) {
+        applySystemLockdownUI(true);
+        return;
+      }
 
       const countsMap = camp.counts || {};
       const totalVotes = Object.values(countsMap).reduce((a, b) => a + Number(b || 0), 0);
