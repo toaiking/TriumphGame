@@ -528,10 +528,10 @@
               <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 space-y-1.5">
                 <label class="block text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
                   <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>DỰ ĐOÁN PHỤ (TIE-BREAKER) <span class="text-rose-400">*</span></span>
+                  <span>DỰ ĐOÁN PHỤ XÉT GIẢI (TIE-BREAKER) <span class="text-rose-400">*</span></span>
                 </label>
-                <p class="text-[11px] text-amber-200/80 leading-snug">
-                  Có bao nhiêu người sẽ cùng lựa chọn đội vô địch giống bạn? (Dùng xét giải nhì/ba nếu trùng kết quả)
+                <p class="text-[11px] text-amber-200/90 leading-snug">
+                  Dự đoán có bao nhiêu người sẽ <strong>cùng bình chọn cho đội bạn vừa chọn</strong>? (Căn cứ chính để xếp hạng trao thưởng TOP 10 khi đội bạn chọn chiến thắng).
                 </p>
                 <div class="relative pt-1">
                   <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-amber-400">
@@ -904,17 +904,55 @@
         </button>
       </div>
       <div class="p-5 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
-        <div class="p-3 bg-dark-950 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-neon-cyan uppercase text-xs mb-1">1. Đối Tượng Tham Gia</h4>
+        <div class="p-3.5 bg-dark-950 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-neon-cyan uppercase text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>1. Đối Tượng Tham Gia</span>
+          </h4>
           <p>Toàn thể Nữ Cán bộ - Công nhân viên trực thuộc Công ty TNHH Triumph International Việt Nam.</p>
         </div>
-        <div class="p-3 bg-dark-950 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-amber-400 uppercase text-xs mb-1">2. Nguyên Tắc Bình Chọn</h4>
-          <p>Mỗi MSNV và mỗi thiết bị được bỏ đúng 01 phiếu duy nhất cho mỗi đợt/vòng thi đấu. Hệ thống tự động mở khóa bình chọn mới khi Ban tổ chức kích hoạt vòng tiếp theo (Tứ kết, Bán kết, Chung kết).</p>
+
+        <div class="p-3.5 bg-dark-950 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-amber-400 uppercase text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>2. Nguyên Tắc Bình Chọn</span>
+          </h4>
+          <p>Mỗi MSNV và mỗi thiết bị được bỏ đúng <strong>01 phiếu hợp lệ duy nhất</strong> cho mỗi đợt/vòng thi đấu. Hệ thống tự động mở đợt bình chọn mới khi Ban tổ chức kích hoạt vòng tiếp theo (Vòng 3, Tứ kết, Bán kết, Chung kết).</p>
         </div>
-        <div class="p-3 bg-dark-950 rounded-xl border border-slate-800">
-          <h4 class="font-bold text-neon-pink uppercase text-xs mb-1">3. Cách Thức Xét Giải</h4>
-          <p>Người trúng thưởng là người chọn chính xác Đội Vô Địch và có dự đoán số người cùng lựa chọn đội đó gần nhất với thực tế (độ lệch &Delta; nhỏ nhất). Nếu có cùng độ lệch, người gửi phiếu sớm hơn sẽ được xếp trên.</p>
+
+        <div class="p-3.5 bg-dark-950 rounded-xl border border-amber-500/40 shadow-sm space-y-2">
+          <h4 class="font-bold text-amber-300 uppercase text-xs flex items-center gap-1.5">
+            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+            <span>3. Cách Thức Xét Giải Thưởng (Chuẩn Xác & Minh Bạch)</span>
+          </h4>
+          <p class="text-slate-300">
+            Do trong 1 đợt bình chọn có thể diễn ra <strong>nhiều trận đấu đối đầu cùng lúc</strong> (các đội có số lượng cổ động viên khác nhau), giải thưởng được xét hoàn toàn công bằng theo <strong>3 tiêu chí ưu tiên</strong>:
+          </p>
+          <ul class="space-y-1.5 list-disc list-inside text-slate-300 pl-1">
+            <li>
+              <strong class="text-neon-cyan">Tiêu chí 1 (Bắt buộc):</strong> Người chơi phải <strong>chọn chính xác Đội Chiến Thắng Chung Cuộc</strong> (hoặc Đội Vô Địch của đợt thi đấu).
+            </li>
+            <li>
+              <strong class="text-amber-400">Tiêu chí 2 (Xếp hạng độ chính xác):</strong> Dự đoán <strong>số lượng người cùng bình chọn cho chính đội bóng đó</strong> có độ lệch tuyệt đối nhỏ nhất:
+              <div class="my-1 p-2 bg-dark-900 rounded-lg text-center font-mono text-xs text-amber-300 border border-slate-800">
+                &Delta; = | Số người dự đoán &minus; Số phiếu thực tế của đội đó |
+              </div>
+              <span class="text-[11px] text-slate-400">Ví dụ: Đội bạn chọn nhận được 150 phiếu thực tế, bạn dự đoán 148 (&Delta; = 2) sẽ xếp trên người dự đoán 145 (&Delta; = 5).</span>
+            </li>
+            <li>
+              <strong class="text-neon-pink">Tiêu chí 3 (Ưu tiên thời gian):</strong> Nếu có từ 2 người trở lên có cùng độ lệch &Delta;, người nào <strong>gửi phiếu bình chọn sớm hơn</strong> vào hệ thống sẽ được xếp hạng cao hơn.
+            </li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 bg-dark-950 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-neon-pink uppercase text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            <span>4. Tỉ Lệ Phần Trăm (%) Trận Đấu Được Dùng Làm Gì?</span>
+          </h4>
+          <p>
+            Tỉ lệ phần trăm (%) hiển thị trên từng trận đấu là <strong>tương quan sức mạnh bình chọn giữa 2 đội đối kháng trực tiếp</strong> trong trận đó (Thanh kéo co Tug-of-War). Tỉ lệ này mang tính cổ vũ tinh thần, phản ánh độ cuồng nhiệt của các khán đài và <em>không làm ảnh hưởng bất lợi</em> đến cơ hội trúng giải của người chơi chọn các trận đấu khác.
+          </p>
         </div>
       </div>
       <div class="p-4 bg-dark-950 border-t border-slate-800 text-right">
