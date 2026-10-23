@@ -1354,6 +1354,10 @@
         if (state.activeCampaignId && state.campaigns[state.activeCampaignId]) {
           state.activeCampaign = state.campaigns[state.activeCampaignId];
           renderVoteView();
+          const modalBracket = document.getElementById("modalBracket");
+          if (modalBracket && !modalBracket.classList.contains("hidden")) {
+            renderDynamicBracket();
+          }
         }
         if (state.isAdminLoggedIn) {
           renderAdminPanel();
@@ -2154,6 +2158,10 @@
         renderAdminMatchResultsBlock();
         if (state.activeCampaignId === cid) {
           renderVoteView();
+          const modalBracket = document.getElementById("modalBracket");
+          if (modalBracket && !modalBracket.classList.contains("hidden")) {
+            renderDynamicBracket();
+          }
         }
         showToast("Đã cập nhật kết quả trận đấu!", "success");
       } catch (err) {
@@ -2175,6 +2183,10 @@
         renderAdminMatchResultsBlock();
         if (state.activeCampaignId === cid) {
           renderVoteView();
+          const modalBracket = document.getElementById("modalBracket");
+          if (modalBracket && !modalBracket.classList.contains("hidden")) {
+            renderDynamicBracket();
+          }
         }
         showToast("Đã làm mới toàn bộ kết quả trận!", "info");
       } catch (err) {
@@ -2686,6 +2698,9 @@
         const leftPairs = pairs.slice(0, half);
         const rightPairs = pairs.slice(half);
 
+        const leftWinners = leftPairs.map(p => p.winnerId ? (p.winnerId === p.t1.id ? p.t1 : p.t2) : null).filter(Boolean);
+        const rightWinners = rightPairs.map(p => p.winnerId ? (p.winnerId === p.t1.id ? p.t1 : p.t2) : null).filter(Boolean);
+
         deskContainer.innerHTML = `
           <div class="min-w-[850px] p-4 bg-dark-950/70 rounded-2xl border border-slate-800/80">
             <div class="grid grid-cols-5 gap-3 items-center">
@@ -2702,14 +2717,14 @@
                   <div class="p-2.5 rounded-xl bg-dark-900 border ${p.winnerId ? 'border-amber-500/40' : 'border-slate-800'} space-y-1 text-xs">
                     <div class="flex justify-between text-[10px] text-slate-500 font-mono"><span>${p.matchNum}</span><span>${p.court}</span></div>
                     <button onclick="pickFromBracket('${p.t1.id}')" class="w-full text-left p-1.5 rounded-lg font-bold truncate flex justify-between items-center group border transition-all ${
-                      isT1Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500' : isT2Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-cyan-500/50'
+                      isT1Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500 ring-1 ring-emerald-500' : isT2Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-cyan-500/50'
                     }">
                       <span class="truncate flex items-center gap-1">${p.t1.name} ${isT1Win ? '👑' : ''}</span>
                       <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neon-cyan opacity-0 group-hover:opacity-100 shrink-0"></i>
                     </button>
                     ${p.t2 ? `
                       <button onclick="pickFromBracket('${p.t2.id}')" class="w-full text-left p-1.5 rounded-lg font-bold truncate flex justify-between items-center group border transition-all ${
-                        isT2Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500' : isT1Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-neon-pink/50'
+                        isT2Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500 ring-1 ring-emerald-500' : isT1Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-neon-pink/50'
                       }">
                         <span class="truncate flex items-center gap-1">${p.t2.name} ${isT2Win ? '👑' : ''}</span>
                         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neon-pink opacity-0 group-hover:opacity-100 shrink-0"></i>
@@ -2722,12 +2737,21 @@
               <!-- Column 2: Semis / QF Left Bridge -->
               <div class="flex flex-col justify-around h-full py-6 space-y-4">
                 <div class="text-center font-bold text-amber-400 text-xs uppercase tracking-wider py-1 border-b border-amber-500/30">
-                  VÒNG LOẠI TRỰC TIẾP
+                  TIẾN VÀO BÁN KẾT (TRÁI)
                 </div>
                 <div class="p-3 rounded-xl bg-dark-900 border-2 border-amber-500/30 text-center space-y-2">
-                  <span class="text-[10px] font-bold text-amber-400 uppercase block">Thắng Nhánh Trái</span>
-                  <div class="p-1.5 rounded-lg bg-dark-950 text-slate-300 font-semibold italic text-[11px] border border-slate-800">
-                    Ứng Viên Vào Bán Kết
+                  <span class="text-[10px] font-bold text-amber-400 uppercase block">Đội Đi Tiếp</span>
+                  <div class="space-y-1">
+                    ${leftWinners.length > 0 ? leftWinners.map(w => `
+                      <div class="p-1.5 rounded-lg bg-emerald-950/50 text-emerald-300 font-bold text-[11px] border border-emerald-500/40 truncate flex items-center justify-between">
+                        <span class="truncate">👑 ${w.name}</span>
+                        <span class="text-[9px] px-1 rounded bg-emerald-500 text-dark-950 font-black">VÀO</span>
+                      </div>
+                    `).join("") : `
+                      <div class="p-1.5 rounded-lg bg-dark-950 text-slate-400 italic text-[11px] border border-slate-800">
+                        Chờ kết quả các trận
+                      </div>
+                    `}
                   </div>
                 </div>
               </div>
@@ -2740,15 +2764,15 @@
                   </div>
                   <div>
                     <h4 class="font-display font-black text-white text-base">TRẬN CHUNG KẾT</h4>
-                    <p class="text-[10px] text-amber-300 font-mono">Tranh Ngôi Vô Địch</p>
+                    <p class="text-[10px] text-amber-300 font-mono">Tranh Ngôi Vô Địch 2026</p>
                   </div>
-                  <div class="space-y-1 text-xs">
-                    <div class="p-1.5 rounded-lg bg-dark-950 border border-cyan-500/40 text-neon-cyan font-bold truncate">
-                      Vô Địch Nhánh 1
+                  <div class="space-y-1.5 text-xs">
+                    <div class="p-1.5 rounded-lg ${leftWinners.length > 0 ? 'bg-cyan-950/60 border-2 border-neon-cyan text-neon-cyan' : 'bg-dark-950 border border-slate-800 text-slate-400'} font-bold truncate">
+                      ${leftWinners.length > 0 ? '👑 ' + leftWinners[0].name : 'Ứng Viên Nhánh Trái'}
                     </div>
                     <div class="text-[9px] font-black text-rose-500 uppercase tracking-widest">VS</div>
-                    <div class="p-1.5 rounded-lg bg-dark-950 border border-neon-pink/40 text-neon-pink font-bold truncate">
-                      Vô Địch Nhánh 2
+                    <div class="p-1.5 rounded-lg ${rightWinners.length > 0 ? 'bg-rose-950/60 border-2 border-neon-pink text-neon-pink' : 'bg-dark-950 border border-slate-800 text-slate-400'} font-bold truncate">
+                      ${rightWinners.length > 0 ? '👑 ' + rightWinners[0].name : 'Ứng Viên Nhánh Phải'}
                     </div>
                   </div>
                   <span class="inline-block px-2.5 py-0.5 rounded-full bg-yellow-400 text-dark-950 font-black text-[10px] tracking-wider uppercase">
@@ -2760,12 +2784,21 @@
               <!-- Column 4: Semis / QF Right Bridge -->
               <div class="flex flex-col justify-around h-full py-6 space-y-4">
                 <div class="text-center font-bold text-amber-400 text-xs uppercase tracking-wider py-1 border-b border-amber-500/30">
-                  VÒNG LOẠI TRỰC TIẾP
+                  TIẾN VÀO BÁN KẾT (PHẢI)
                 </div>
                 <div class="p-3 rounded-xl bg-dark-900 border-2 border-amber-500/30 text-center space-y-2">
-                  <span class="text-[10px] font-bold text-amber-400 uppercase block">Thắng Nhánh Phải</span>
-                  <div class="p-1.5 rounded-lg bg-dark-950 text-slate-300 font-semibold italic text-[11px] border border-slate-800">
-                    Ứng Viên Vào Bán Kết
+                  <span class="text-[10px] font-bold text-amber-400 uppercase block">Đội Đi Tiếp</span>
+                  <div class="space-y-1">
+                    ${rightWinners.length > 0 ? rightWinners.map(w => `
+                      <div class="p-1.5 rounded-lg bg-emerald-950/50 text-emerald-300 font-bold text-[11px] border border-emerald-500/40 truncate flex items-center justify-between">
+                        <span class="truncate">👑 ${w.name}</span>
+                        <span class="text-[9px] px-1 rounded bg-emerald-500 text-dark-950 font-black">VÀO</span>
+                      </div>
+                    `).join("") : `
+                      <div class="p-1.5 rounded-lg bg-dark-950 text-slate-400 italic text-[11px] border border-slate-800">
+                        Chờ kết quả các trận
+                      </div>
+                    `}
                   </div>
                 </div>
               </div>
@@ -2782,14 +2815,14 @@
                   <div class="p-2.5 rounded-xl bg-dark-900 border ${p.winnerId ? 'border-amber-500/40' : 'border-slate-800'} space-y-1 text-xs">
                     <div class="flex justify-between text-[10px] text-slate-500 font-mono"><span>${p.matchNum}</span><span>${p.court}</span></div>
                     <button onclick="pickFromBracket('${p.t1.id}')" class="w-full text-left p-1.5 rounded-lg font-bold truncate flex justify-between items-center group border transition-all ${
-                      isT1Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500' : isT2Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-cyan-500/50'
+                      isT1Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500 ring-1 ring-emerald-500' : isT2Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-cyan-500/50'
                     }">
                       <span class="truncate flex items-center gap-1">${p.t1.name} ${isT1Win ? '👑' : ''}</span>
                       <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-neon-cyan opacity-0 group-hover:opacity-100 shrink-0"></i>
                     </button>
                     ${p.t2 ? `
                       <button onclick="pickFromBracket('${p.t2.id}')" class="w-full text-left p-1.5 rounded-lg font-bold truncate flex justify-between items-center group border transition-all ${
-                        isT2Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500' : isT1Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-neon-pink/50'
+                        isT2Win ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500 ring-1 ring-emerald-500' : isT1Win ? 'bg-dark-950/60 text-slate-500 border-transparent opacity-60' : 'bg-dark-950 text-white border-transparent hover:border-neon-pink/50'
                       }">
                         <span class="truncate flex items-center gap-1">${p.t2.name} ${isT2Win ? '👑' : ''}</span>
                         <i data-lucide="chevron-left" class="w-3.5 h-3.5 text-neon-pink opacity-0 group-hover:opacity-100 shrink-0"></i>
